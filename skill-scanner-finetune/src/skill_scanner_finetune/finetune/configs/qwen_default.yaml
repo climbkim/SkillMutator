@@ -1,0 +1,79 @@
+# =============================================================================
+# Default training config (paper Table VI / Finding 1 setting)
+#
+# Base model:  Qwen2.5-Coder-7B-Instruct
+# Schema:      Four-phase (P1 Purpose Grounding, P2 Out-of-Scope Detection,
+#              P3 Security Principle Reasoning, P4 Attack Category Labeling)
+# Eval result: 88.16 % detection on the 76-case GPT-5.4 oracle benchmark
+#              (with Forced Prefix Pre-filling at inference time)
+#
+# Field layout matches finetune/train.py exactly (model / quantization / lora /
+# data / training / logging). Override paths via environment variables before
+# launching, or edit the values below.
+# =============================================================================
+
+model:
+  # HF model id or a local snapshot path.
+  name: "Qwen/Qwen2.5-Coder-7B-Instruct"
+  torch_dtype: "bfloat16"          # A100/H100 bfloat16; V100 float16
+  attn_implementation: "sdpa"      # PyTorch SDPA (or "flash_attention_2" if installed)
+
+# QLoRA (enable only for low-VRAM setups; the paper used full bfloat16 LoRA).
+quantization:
+  enabled: false
+  load_in_4bit: true
+  bnb_4bit_compute_dtype: "bfloat16"
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_quant_type: "nf4"
+
+# LoRA hyperparameters (paper Finding 2 default).
+lora:
+  enabled: true
+  r: 64
+  alpha: 128
+  dropout: 0.05
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+# Dataset. Point these at the JSONL produced by scripts/prepare_dataset.py.
+data:
+  train_file: "dataset/train.jsonl"
+  val_file:   "dataset/val.jsonl"
+  max_seq_length: 16384
+
+# Training hyperparameters (paper Finding 2 default: lr 5e-5, 5 epochs).
+training:
+  output_dir: "output/qwen2.5-coder-7b-d3"
+  num_train_epochs: 5
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 1
+  gradient_accumulation_steps: 4
+  learning_rate: 5.0e-5
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.05
+  weight_decay: 0.0
+  max_grad_norm: 1.0
+  bf16: true
+  fp16: false
+  tf32: false
+  gradient_checkpointing: true
+  dataloader_num_workers: 4
+
+# Logging / checkpointing.
+logging:
+  logging_steps: 10
+  eval_strategy: "epoch"
+  save_strategy: "epoch"
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  report_to: "none"                # set to "wandb" to track the run
+  run_name: "qwen2.5-coder-7b-d3"

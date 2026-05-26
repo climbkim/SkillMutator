@@ -1,0 +1,76 @@
+# Byte-compiled / optimized
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+*.egg
+MANIFEST
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project artifacts (NEVER commit any of these)
+data/
+results/
+result/
+baseline_result/
+experiments/
+test_scanner_result*/
+mutations/
+analysis_outputs/
+*.tar.gz
+*.zip
+adapters/
+checkpoints/
+
+# Logs
+*.log
+logs/
+wandb/
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Type-checker
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints
+
+# Paper artifacts (regenerated via analysis/)
+outputs/
+results/
+baseline_result/
