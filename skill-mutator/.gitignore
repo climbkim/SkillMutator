@@ -74,3 +74,8 @@ htmlcov/
 outputs/
 results/
 baseline_result/
+demo-results/
+demo-data/
+analysis/paper_floats/outputs/
+analysis/rq1/scripts/outputs/
+analysis/rq2/scripts/outputs/

@@ -25,7 +25,7 @@ original scattered scanner outputs).
 ```python
 import sys; sys.path.insert(0, "E:/eval")
 from skillmutator_utils import (
-    aggregate_scenario_final,        # paper Table 1 cells
+    aggregate_scenario_final,        # paper Table IV cells
     aggregate_per_iter,              # RQ2 trajectory (carry_forward / rule_1 / rule_2)
     refusal_summary,                 # refusal table
     valid_scenarios,                 # canonical denominator set

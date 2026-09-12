@@ -38,6 +38,10 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+import sys as _sys
+_SRC = REPO_ROOT / "src"
+if str(_SRC) not in _sys.path:
+    _sys.path.insert(0, str(_SRC))
 SCAN_PY   = REPO_ROOT / "skillmutator" / "scan.py"
 
 # Add the skillmutator package path
@@ -204,13 +208,13 @@ def process_run(
         judge_llm:        LLM instance for judgment (GPT or any main model)
         llm_mode:         "direct" | "compare"
     """
-    from process.compare import (
+    from skill_mutator.process.compare import (
         _compare_llm_direct,
         _compare_llm,
         generate_llm_report,
         find_latest_file,
     )
-    from process.skill_mutation import _to_safe_dirname
+    from skill_mutator.process.skill_mutation import _to_safe_dirname
 
     meta             = load_run_metadata(base_dir)
     attack_scenarios = meta["attack_scenarios"]
@@ -486,7 +490,7 @@ def main():
     )
     args = parser.parse_args()
 
-    from LLM import create_llm
+    from skill_mutator.llm import create_llm
 
     result_root = Path(args.result_dir).resolve()
 

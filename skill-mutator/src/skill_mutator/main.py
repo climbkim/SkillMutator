@@ -204,7 +204,13 @@ def example_skill_mutation(skill_name: str = "pdf", use_select_attacks: bool = T
 
     MAX_ITERATIONS = max_iterations
 
-    skill_dir  = _REPO_ROOT / "skills" / skill_name
+    # skill_name may be a bare name under {repo}/skills/, OR a full path to a
+    # skill folder (e.g. examples/skills/sample_skill). Resolve both; use the
+    # basename as the result-tree key so output never lands INSIDE the skill
+    # directory (which would make the copytree below recurse infinitely).
+    _skill_arg = Path(skill_name)
+    skill_dir  = _skill_arg.resolve() if (_skill_arg / "SKILL.md").is_file() else (_REPO_ROOT / "skills" / skill_name)
+    skill_key  = skill_dir.name
     # result_root: overridable from the CLI via --result-dir, so different
     # model experiments can be saved into separate roots.
     _result_root = Path(result_root) if result_root else (_REPO_ROOT / "result")
@@ -221,7 +227,7 @@ def example_skill_mutation(skill_name: str = "pdf", use_select_attacks: bool = T
     else:  # not use_select_attacks and use_llm_detect
         mode_suffix = "no-select_llm-detect"
     run_id      = f"{timestamp}_{mode_suffix}"
-    base_dir    = _result_root / skill_name / run_id
+    base_dir    = _result_root / skill_key / run_id
     base_dir.mkdir(parents=True, exist_ok=True)
 
     llm_detect_label = "+LLM-detect" if use_llm_detect else ""

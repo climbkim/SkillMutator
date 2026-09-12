@@ -1,4 +1,4 @@
-"""build_tab2_refusal_summary.py — refusal summary table per (oracle, mode).
+"""build_tab2_refusal_summary.py — paper Table III: refusal summary per (oracle, mode).
 Uses the unified classifications module (which builds from raw mutation JSONs).
 """
 import csv, sys
@@ -45,7 +45,9 @@ def main():
         w = csv.DictWriter(f, fieldnames=fields); w.writeheader()
         for r in rows: w.writerow(r)
     with open(OUT_PER_ITER, "w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(per_iter_rows[0].keys())); w.writeheader()
+        if per_iter_rows:
+            w = csv.DictWriter(f, fieldnames=list(per_iter_rows[0].keys())); w.writeheader()
+            for _r in per_iter_rows: w.writerow(_r)
         for r in per_iter_rows: w.writerow(r)
 
     print(f"[saved] {OUT_SUMMARY}")

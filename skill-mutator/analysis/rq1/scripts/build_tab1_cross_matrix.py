@@ -1,4 +1,4 @@
-"""build_tab1_cross_matrix.py — paper Table 1 (cross-model scanner detection
+"""build_tab1_cross_matrix.py — paper Table IV (cross-scanner detection
 rate matrix). Reads from the unified Skillmutator-data tree.
 
 Per (oracle, scanner) cell:

@@ -1,6 +1,6 @@
 # Reproducing the paper
 
-This document walks through reproducing **Table 1** (cross-model scanner detection-rate matrix) and **Table 2** (safety-refusal summary) from the paper. The fine-tuning side (Tables 3–4 and Findings 2–3 in §RQ3) is reproduced from the sister repository, [`skill-scanner-finetune`](https://github.com/ANONYMOUS-ID/skill-scanner-finetune).
+This document walks through reproducing **Table IV** (cross-scanner detection-rate matrix), **Table III** (safety-refusal summary), **Table V** (select vs no-select), and **Figure 4** (IER dynamics) from the paper. The fine-tuned-scanner floats (Tables VI/X/XI, Figures 5–6) are reproduced from the sister repository `skill-scanner-finetune`.
 
 ## What you need
 
