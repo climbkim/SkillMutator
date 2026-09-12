@@ -48,19 +48,30 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-# Auto-load OPENAI_API_KEY from a .env file if it is not already in the
-# environment, so `./run.sh` works as a single command. Search order:
-# --env-file, then .env beside run.sh and up to three parent directories.
-if [ -z "${OPENAI_API_KEY:-}" ]; then
+# Auto-load scanner credentials from a .env file so `./run.sh` works as a
+# single command. Search order: --env-file, then .env beside run.sh and up to
+# three parent directories; the first file found is used.
+#   OPENAI_API_KEY : REQUIRED (adversarial oracle + LLM scanner + judge).
+#   SNYK_TOKEN     : OPTIONAL — enables the Snyk Agent scanner. Without it the
+#                    Snyk column is left unavailable and the demo still shows
+#                    the LLM scanner vs. skill-security (the paper's key story).
+#   LLM_PROVIDER / LLM_MODEL : OPTIONAL LLM-scanner defaults.
+_load_env_var() {  # $1 = var name; only sets it if not already in the environment
+  eval "[ -n \"\${$1:-}\" ]" && return 0
   for _env in "$ENV_FILE" .env ../.env ../../.env ../../../.env; do
     [ -n "$_env" ] && [ -f "$_env" ] || continue
-    _val="$(grep -m1 '^OPENAI_API_KEY=' "$_env" | cut -d= -f2- | tr -d '\r' | sed -e 's/^"//' -e 's/"$//')"
+    _val="$(grep -m1 "^$1=" "$_env" | cut -d= -f2- | tr -d '\r' | sed -e 's/^"//' -e 's/"$//')"
     [ -n "$_val" ] || continue
-    export OPENAI_API_KEY="$_val"
-    echo "   (loaded OPENAI_API_KEY from $_env)"
-    break
+    export "$1=$_val"
+    echo "   (loaded $1 from $_env)"
+    return 0
   done
-fi
+  return 1
+}
+_load_env_var OPENAI_API_KEY || true
+_load_env_var SNYK_TOKEN    || echo "   (no SNYK_TOKEN found -> Snyk scanner will be skipped/unavailable)"
+_load_env_var LLM_PROVIDER  || true
+_load_env_var LLM_MODEL     || true
 : "${OPENAI_API_KEY:?Set OPENAI_API_KEY (env var), or put it in a .env beside run.sh / pass --env-file}"
 
 echo "== SkillMutator demo =="
