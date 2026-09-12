@@ -79,6 +79,7 @@ PYCHK
 
 RESULTS="./demo-results"
 export SKILLMUTATOR_DATA_ROOT="${SKILLMUTATOR_DATA_ROOT:-$PWD/demo-data}"
+export SKILLMUTATOR_ORACLE="$MODEL"   # Table V (select) uses this oracle
 
 echo "== [0/4] Clean prior demo artifacts (fresh run) =="
 rm -rf "$RESULTS" "$SKILLMUTATOR_DATA_ROOT" baseline_result analysis/rq1/scripts/outputs analysis/rq2/scripts/outputs analysis/paper_floats/outputs

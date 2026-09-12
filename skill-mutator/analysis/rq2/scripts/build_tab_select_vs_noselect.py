@@ -1,5 +1,5 @@
 """build_tab_select_vs_noselect.py — Analysis 1 (select vs no-select),
-gpt-5.4 oracle. Reads from unified Skillmutator-data tree.
+oracle set by $SKILLMUTATOR_ORACLE (default gpt-5.4). Reads the unified data tree.
 
 Each scanner's verdict per scenario = verdict at last_good_iter (carry-forward).
 Denom: iter_0 normal scenarios. select n=76, no-select n=215.
@@ -17,27 +17,28 @@ _ANALYSIS_ROOT = Path(__file__).resolve().parents[2]
 if str(_ANALYSIS_ROOT) not in sys.path:
     sys.path.insert(0, str(_ANALYSIS_ROOT))
 
+import os
 from skillmutator_utils.refusal import aggregate_scenario_final
+from skillmutator_utils.paths import llm_scanners_for
 
 if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 OUT = Path("outputs/tab_select_vs_noselect.csv")
 
-SCANNERS = [
-    ("ss",                "skill-security-scan"),
-    ("snyk",              "Snyk Agent Scan"),
-    ("llm/gpt-4o-mini",   "GPT-4o-mini scanner"),
-    ("llm/gpt-5.4-mini",  "GPT-5.4-mini scanner"),
-    ("llm/gpt-5.4-self",  "GPT-5.4 scanner"),
-]
+# Oracle is parametric: defaults to the paper's canonical gpt-5.4 oracle;
+# override with $SKILLMUTATOR_ORACLE (e.g. run.sh sets it to the demo oracle).
+ORACLE = os.environ.get("SKILLMUTATOR_ORACLE", "gpt-5.4")
+SCANNERS = [("ss", "skill-security-scan"), ("snyk", "Snyk Agent Scan")]
+for _s in llm_scanners_for(ORACLE):
+    SCANNERS.append((f"llm/{_s}", f"{_s} scanner"))
 
 
 def main():
     rows = []
     for sc_path, label in SCANNERS:
-        sel = aggregate_scenario_final("gpt-5.4", "select", sc_path)
-        nsl = aggregate_scenario_final("gpt-5.4", "no-select", sc_path)
+        sel = aggregate_scenario_final(ORACLE, "select", sc_path)
+        nsl = aggregate_scenario_final(ORACLE, "no-select", sc_path)
         rows.append({
             "scanner": label, "scanner_path": sc_path,
             "n_select": sel["n"], "detected_select": sel["detected"],
@@ -59,7 +60,7 @@ def main():
     avg_dpp = avg_nsl - avg_sel
 
     print(f"[saved] {OUT}\n")
-    print(f"=== select vs no-select (gpt-5.4 oracle) ===")
+    print(f"=== select vs no-select ({ORACLE} oracle) ===")
     print(f"{'Scanner':<24} {'sel n':>6} {'sel %':>8} {'nsl n':>7} {'nsl %':>8} {'Δpp':>8}")
     print("-" * 70)
     for r in rows:
