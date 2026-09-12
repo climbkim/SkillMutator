@@ -279,7 +279,7 @@ def example_skill_mutation(skill_name: str = "pdf", use_select_attacks: bool = T
             for skills_path in skills_to_scan:
                 log_dir = skills_path.parent / "logs"
                 cmd = [
-                    sys.executable, str(_REPO_ROOT / "skillmutator" / "scan.py"),
+                    sys.executable, str(_REPO_ROOT / "src" / "skill_mutator" / "scan.py"),
                     str(skills_path.resolve()),
                     "--all",
                     f"--log-dir={log_dir}",

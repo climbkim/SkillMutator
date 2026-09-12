@@ -27,15 +27,19 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables from .env (SNYK_TOKEN, LLM config, etc.)
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
 
 # Ensure UTF-8 output on the Windows console
 if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
-BASE_DIR   = Path(__file__).resolve().parent.parent  # repo root
-SKILLS_DIR = BASE_DIR / "skills"
+_PKG_DIR     = Path(__file__).resolve().parent          # src/skill_mutator (this package)
+BASE_DIR     = _PKG_DIR.parent.parent                   # repo root
+SKILLS_DIR   = BASE_DIR / "skills"
+# The bundled scanners live inside this package (src/skill_mutator/scanners/),
+# NOT at the repo root — resolve them from the package dir, not BASE_DIR.
+SCANNERS_DIR = _PKG_DIR / "scanners"
 def get_default_log_dir():
     return BASE_DIR / "log"
 
@@ -145,7 +149,7 @@ class SnykAgentScanner(BaseScanner):
         self.validate()
         cmd = self.build_command()
         dest = self.log_path()
-        snyk_src = BASE_DIR / "scanners" / "snyk-agent" / "src"
+        snyk_src = SCANNERS_DIR / "snyk_agent" / "src"
 
         print(f"[scan] target: {self.skills_path}")
         print(f"[scan] command: {' '.join(cmd)}")
@@ -190,7 +194,7 @@ class SkillSecurityScanner(BaseScanner):
         self.validate()
         cmd = self.build_command()
         dest = self.log_path()
-        scanner_dir = BASE_DIR / "scanners" / "skill-security"
+        scanner_dir = SCANNERS_DIR / "skill_security"
 
         print(f"[scan] target: {self.skills_path}")
         print(f"[scan] command: {' '.join(cmd)}")
@@ -239,7 +243,7 @@ class LLMScanner(BaseScanner):
 
         cmd = [
             sys.executable,
-            str(BASE_DIR / "scanners" / "llm-scanner" / "scanner.py"),
+            str(SCANNERS_DIR / "llm_scanner" / "scanner.py"),
             "-p", provider,
             "-s", self.folder,
             "-o", str(report_dir),
