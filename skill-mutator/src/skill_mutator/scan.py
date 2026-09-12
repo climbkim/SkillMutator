@@ -149,6 +149,10 @@ class SnykAgentScanner(BaseScanner):
         self.validate()
         cmd = self.build_command()
         dest = self.log_path()
+        # The Snyk Agent scanner is the PyPI package `snyk-agent-scan`
+        # (installed by `install.sh --generate`); `python -m agent_scan.run`
+        # resolves it from the environment. For a source checkout placed at
+        # scanners/snyk_agent/, prepend its src/ so the local copy wins.
         snyk_src = SCANNERS_DIR / "snyk_agent" / "src"
 
         print(f"[scan] target: {self.skills_path}")
@@ -157,7 +161,8 @@ class SnykAgentScanner(BaseScanner):
 
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
-        env["PYTHONPATH"] = str(snyk_src) + os.pathsep + env.get("PYTHONPATH", "")
+        if snyk_src.is_dir():
+            env["PYTHONPATH"] = str(snyk_src) + os.pathsep + env.get("PYTHONPATH", "")
         result = subprocess.run(
             cmd, capture_output=True, text=True, encoding="utf-8",
             env=env,

@@ -27,18 +27,25 @@ Verify each skill has at least a `SKILL.md` plus zero or more `.py` / template f
 
 ## 2. Community-authored training skills (n = 50)
 
-These were collected from public skill registries (e.g. ClawHub, GitHub topic searches, community Discord shares). The repo provides a crawler scaffold under `src/skill_mutator/crawler/`, but **does not redistribute the skill bodies** — licenses vary per skill.
+These were collected from public skill registries (e.g. ClawHub, GitHub topic searches, community Discord shares). The repo ships the crawler **entry point** (`scripts/crawl_skills.py`) but **not** a registry backend and **not** the skill bodies — licenses vary per skill, and scraping terms vary per registry.
 
 To assemble your own pool of 50 community skills, you can either:
 
-### Option A — Use the included crawler
+### Option A — Use the included crawler entry point
 
 ```bash
-python scripts/crawl_skills.py --target-count 50 \
+# via run.sh (populates ./skills, then mutates the pool):
+./run.sh --crawl 50 --registry clawhub --skills-dir ./skills
+# or directly:
+python scripts/crawl_skills.py --registry clawhub --target-count 50 \
        --output-dir ${SKILLMUTATOR_DATA_ROOT}/skills/train-community-50
 ```
 
-Edit `src/skill_mutator/crawler/` to point at the registries you want to scrape. The crawler ships with placeholder selectors — you will need to update them for your registry of choice.
+`crawl_skills.py` dispatches to `skill_mutator.crawler.<registry>` and expects a
+`crawl(target_count, output_dir)` function there. **That backend is not
+included** — add `src/skill_mutator/crawler/<registry>.py` implementing it for
+the registry you are authorised to scrape. Until you do, the crawler exits with
+a "not implemented" hint and no skills are written.
 
 ### Option B — Manual collection
 

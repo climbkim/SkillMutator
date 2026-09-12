@@ -22,8 +22,10 @@ local scanner from it — lives in the sister package
   baseline scan of the unmutated skill.
 - **Multi-provider LLM clients** — OpenAI, Anthropic, Google, and HuggingFace
   inference are all supported via a single `create_llm(...)` factory.
-- **Community-skill crawler** — code-only crawler that lets you build your own
-  evaluation corpus from public skill marketplaces.
+- **Community-skill crawler** — a crawler entry point
+  (`scripts/crawl_skills.py`) for assembling your own evaluation corpus; the
+  per-registry backend is not shipped (no skill bodies are redistributed —
+  implement one for the source you are authorised to use).
 
 ## Install
 
@@ -36,6 +38,11 @@ cp .env.example .env   # then fill in OPENAI_API_KEY (and optionally HF_TOKEN, S
 
 Requirements: Python 3.10+, plus an API key for whichever provider you use as
 the mutator/scanner backend.
+
+The `snyk` scanner is the third-party `snyk-agent-scan` package (Apache-2.0,
+**not** vendored); `pip install -e .[all]` (or `.[scan]`) pulls it in, and it
+needs a `SNYK_TOKEN` at run time. Without it the Snyk column is simply left
+unavailable — the LLM scanner and `skill-security` still run.
 
 ## Quickstart
 
@@ -50,8 +57,8 @@ python scripts/run_mutation.py path/to/skill \
 # Run a single scanner against a (possibly mutated) skill.
 python scripts/run_scanner.py path/to/skill --scanner llm
 
-# Sweep many skills at once.
-python scripts/run_all_skills.py --skills-dir ./skills --provider openai
+# Sweep many skills at once (mutates every skill folder under ./skills).
+python scripts/run_all_skills.py --provider openai
 ```
 
 Mutation outputs land at
@@ -81,12 +88,12 @@ skill-mutator/
 │   ├── llm/                 # OpenAI / Anthropic / Google / HuggingFace clients
 │   ├── scanners/
 │   │   ├── llm_scanner/     # LLM-based semantic scanner
-│   │   ├── skill_security/  # rule-based SAST scanner
-│   │   └── snyk_agent/      # SCA wrapper for Snyk Agent
-│   ├── crawler/             # community-skill crawler (code only; no data)
+│   │   └── skill_security/  # rule-based SAST scanner (MIT, bundled)
+│   │                        # Snyk: pip `snyk-agent-scan` (Apache-2.0, not vendored)
 │   └── utils/
-├── examples/skills/         # sample skills for the smoke test
-├── scripts/                 # CLI entry points (run_mutation, run_scanner, …)
+├── examples/skills/         # bundled sample skill for the demo/smoke test
+├── skills/                  # default skill pool (empty; drop skills here)
+├── scripts/                 # CLI entry points (run_mutation, run_scanner, crawl_skills, …)
 ├── docs/                    # ARCHITECTURE, USAGE, attack_categories.json
 └── tests/
 ```

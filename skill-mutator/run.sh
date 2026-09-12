@@ -27,8 +27,18 @@
 #   ./run.sh                         # sample skill, gpt-4o-mini oracle+scanner+judge
 #   ./run.sh --model gpt-5.4-mini    # change the oracle / LLM-scanner model
 #   ./run.sh --judge-model gpt-5.4   # change the judge model (paper uses gpt-5.4)
-#   ./run.sh --skill path/to/skill   # mutate a different skill folder
+#   ./run.sh --skill path/to/skill   # mutate a different single skill folder
 #   ./run.sh --env-file path/to/.env # load OPENAI_API_KEY from this .env file
+#   ./run.sh --crawl 10              # (EXPERIMENTAL) crawl N community skills into
+#                                    #   --skills-dir first, then mutate the whole
+#                                    #   pool instead of the single sample
+#   ./run.sh --crawl 10 --registry clawhub --skills-dir ./skills
+#
+# NOTE on --crawl: it drives scripts/crawl_skills.py, whose registry backend
+# (src/skill_mutator/crawler/<registry>.py) ships only as a placeholder scaffold
+# — no skill bodies are redistributed (licenses vary). Until you implement a
+# backend (or drop skills into --skills-dir manually; see docs/SKILLS_SETUP.md),
+# --crawl finds no skills and the demo falls back to the bundled sample skill.
 # ---------------------------------------------------------------------------
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -37,13 +47,19 @@ MODEL="gpt-4o-mini"
 JUDGE_MODEL="gpt-4o-mini"
 SKILL="examples/skills/sample_skill"
 ENV_FILE=""
+CRAWL_N=0
+REGISTRY="clawhub"
+SKILLS_DIR="./skills"
 while [ $# -gt 0 ]; do
   case "$1" in
     --model)       MODEL="$2"; shift 2 ;;
     --judge-model) JUDGE_MODEL="$2"; shift 2 ;;
     --skill)       SKILL="$2"; shift 2 ;;
     --env-file)    ENV_FILE="$2"; shift 2 ;;
-    -h|--help)     sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    --crawl)       CRAWL_N="$2"; shift 2 ;;
+    --registry)    REGISTRY="$2"; shift 2 ;;
+    --skills-dir)  SKILLS_DIR="$2"; shift 2 ;;
+    -h|--help)     sed -n '2,44p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown option: $1 (try --help)"; exit 2 ;;
   esac
 done
@@ -74,19 +90,43 @@ _load_env_var LLM_PROVIDER  || true
 _load_env_var LLM_MODEL     || true
 : "${OPENAI_API_KEY:?Set OPENAI_API_KEY (env var), or put it in a .env beside run.sh / pass --env-file}"
 
-echo "== SkillMutator demo =="
-echo "   oracle/scanner model : $MODEL   (default gpt-4o-mini; override with --model)"
-echo "   judge model          : $JUDGE_MODEL (override with --judge-model; paper uses gpt-5.4)"
-echo "   skill                : $SKILL"
-echo "   NOTE: demo scale (1 skill, 1 oracle). Full paper numbers -> docs/REPRODUCE.md."
-echo
-
 # Dependency guard (generation extras).
 python3 - <<'PYCHK' || { echo "Missing generation deps. Install: ./install.sh --generate"; exit 1; }
 import importlib.util, sys
 need = ("openai","langchain_core","langchain_openai","langgraph","tiktoken","dotenv")
 sys.exit(1 if [m for m in need if importlib.util.find_spec(m) is None] else 0)
 PYCHK
+
+# --- Skill selection ------------------------------------------------------
+# Build the list of skills to mutate. Default: the single bundled sample.
+# With --crawl N, first populate $SKILLS_DIR via scripts/crawl_skills.py, then
+# mutate every skill found there.
+SKILLS=()
+if [ "$CRAWL_N" -gt 0 ]; then
+  echo "== [crawl] fetch $CRAWL_N skills via crawl_skills.py (registry=$REGISTRY -> $SKILLS_DIR) =="
+  mkdir -p "$SKILLS_DIR"
+  if ! python scripts/crawl_skills.py --registry "$REGISTRY" \
+         --target-count "$CRAWL_N" --output-dir "$SKILLS_DIR"; then
+    echo "   crawl_skills.py did not produce skills — the community crawler ships as a"
+    echo "   placeholder scaffold. Implement src/skill_mutator/crawler/${REGISTRY}.py"
+    echo "   (a crawl(target_count, output_dir) function), or drop skills into"
+    echo "   $SKILLS_DIR manually (see docs/SKILLS_SETUP.md)."
+  fi
+  for _d in "$SKILLS_DIR"/*/; do
+    [ -f "${_d}SKILL.md" ] && SKILLS+=("${_d%/}")
+  done
+  if [ "${#SKILLS[@]}" -eq 0 ]; then
+    echo "   no crawled skills found -> falling back to the bundled sample skill."
+  fi
+fi
+[ "${#SKILLS[@]}" -eq 0 ] && SKILLS=("$SKILL")
+
+echo "== SkillMutator demo =="
+echo "   oracle/scanner model : $MODEL   (default gpt-4o-mini; override with --model)"
+echo "   judge model          : $JUDGE_MODEL (override with --judge-model; paper uses gpt-5.4)"
+echo "   skills (${#SKILLS[@]})            : ${SKILLS[*]}"
+echo "   NOTE: demo scale (${#SKILLS[@]} skill(s), 1 oracle). Full paper numbers -> docs/REPRODUCE.md."
+echo
 
 RESULTS="./demo-results"
 export SKILLMUTATOR_DATA_ROOT="${SKILLMUTATOR_DATA_ROOT:-$PWD/demo-data}"
@@ -95,11 +135,14 @@ export SKILLMUTATOR_ORACLE="$MODEL"   # Table V (select) uses this oracle
 echo "== [0/4] Clean prior demo artifacts (fresh run) =="
 rm -rf "$RESULTS" "$SKILLMUTATOR_DATA_ROOT" baseline_result analysis/rq1/scripts/outputs analysis/rq2/scripts/outputs analysis/paper_floats/outputs
 
-echo "== [1/4] Mutate the sample skill (oracle=$MODEL, 1 refinement iteration) =="
-python scripts/run_mutation.py "$SKILL" \
-    --provider openai --model "$MODEL" \
-    --mode select --max-iters 1 --use-llm-detect \
-    --result-dir "$RESULTS"
+echo "== [1/4] Mutate the skill(s) (oracle=$MODEL, 1 refinement iteration) =="
+for _skill in "${SKILLS[@]}"; do
+  echo "   -> mutating: $_skill"
+  python scripts/run_mutation.py "$_skill" \
+      --provider openai --model "$MODEL" \
+      --mode select --max-iters 1 --use-llm-detect \
+      --result-dir "$RESULTS"
+done
 
 echo "== [2/4] Consolidate the run into the canonical data tree ($SKILLMUTATOR_DATA_ROOT) =="
 python scripts/consolidate_to_datatree.py \
@@ -110,10 +153,14 @@ echo "== [3/4] Populate per-scanner verdicts into the tree (from the run's scan 
 # The mutation step (--use-llm-detect) already scanned + adjudicated each cell and
 # wrote comparison_<skill>.csv (ss/snyk/llm detected). Bridge those into the
 # <cell>/<scanner>/verdict.json cells (and mark classification) the builders read.
-python scripts/populate_verdicts.py \
-    --comparison-csv "$RESULTS/comparison_$(basename "$SKILL").csv" \
-    --oracle "$MODEL" --mode select \
-    --data-root "$SKILLMUTATOR_DATA_ROOT" --scanner-model "$MODEL"
+for _skill in "${SKILLS[@]}"; do
+  _csv="$RESULTS/comparison_$(basename "$_skill").csv"
+  [ -f "$_csv" ] || { echo "   (no comparison CSV for $(basename "$_skill"), skipping)"; continue; }
+  python scripts/populate_verdicts.py \
+      --comparison-csv "$_csv" \
+      --oracle "$MODEL" --mode select \
+      --data-root "$SKILLMUTATOR_DATA_ROOT" --scanner-model "$MODEL"
+done
 
 echo "== [4/4] Build the paper floats from the run =="
 python analysis/paper_floats/table3_refusal.py      || true

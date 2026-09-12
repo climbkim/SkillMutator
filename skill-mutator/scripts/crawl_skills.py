@@ -1,9 +1,14 @@
-"""crawl_skills.py -- placeholder community-skill crawler.
+"""crawl_skills.py -- community-skill crawler entry point.
 
-The crawler scaffolding lives in `src/skill_mutator/crawler/`; this script is
-the user-facing entry point referenced in `docs/SKILLS_SETUP.md`. The actual
-selectors will vary per registry (ClawHub, GitHub topic searches, etc.); edit
-the crawler module before running on a new source.
+This is the user-facing entry point referenced in `docs/SKILLS_SETUP.md` and by
+`run.sh --crawl`. It dispatches to `skill_mutator.crawler.<registry>` and calls
+its `crawl(target_count, output_dir)` function.
+
+The registry backend is NOT included in this repo (no skill bodies are
+redistributed and scraping terms vary per registry): add
+`src/skill_mutator/crawler/<registry>.py` implementing `crawl(...)` for the
+source you are authorised to use. Without it this script exits with a
+"not implemented" hint and writes nothing.
 
 Usage:
     python scripts/crawl_skills.py \\
@@ -16,6 +21,13 @@ from __future__ import annotations
 import argparse
 import importlib
 import sys
+from pathlib import Path
+
+# Make the `skill_mutator` package importable when run as a plain script
+# (scripts/crawl_skills.py) so `skill_mutator.crawler.<registry>` resolves.
+_SRC = Path(__file__).resolve().parent.parent / "src"
+if _SRC.is_dir() and str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
 
 
 def main() -> int:

@@ -25,6 +25,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -72,9 +73,15 @@ def main() -> int:
         cmd = [sys.executable, "-m", "src.cli", "scan", str(Path(args.skill_path).resolve())]
         return subprocess.run(cmd, cwd=str(scanner_dir)).returncode
     elif args.scanner == "snyk":
-        scanner_dir = _scanners_root() / "snyk_agent"
-        cmd = ["snyk", "agent", "scan", str(Path(args.skill_path).resolve())]
-        return subprocess.run(cmd, cwd=str(scanner_dir)).returncode
+        # `snyk-agent-scan` PyPI package (installed by install.sh --generate).
+        # A local source checkout at scanners/snyk_agent/src/ takes precedence.
+        cmd = [sys.executable, "-m", "agent_scan.run",
+               "--skills", str(Path(args.skill_path).resolve())]
+        env = os.environ.copy()
+        snyk_src = _scanners_root() / "snyk_agent" / "src"
+        if snyk_src.is_dir():
+            env["PYTHONPATH"] = str(snyk_src) + os.pathsep + env.get("PYTHONPATH", "")
+        return subprocess.run(cmd, env=env).returncode
     else:
         ap.error(f"unknown scanner: {args.scanner}")
         return 2
