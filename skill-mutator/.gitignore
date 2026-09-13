@@ -41,6 +41,10 @@ Thumbs.db
 
 # Project artifacts (NEVER commit any of these)
 data/
+# ...except the ClawHub manifest CSV (public metadata only; no skill bodies),
+# which the clawhub crawler backend auto-discovers.
+!data/clawhub/
+!data/clawhub/clawhub_skills.csv
 results/
 result/
 baseline_result/
