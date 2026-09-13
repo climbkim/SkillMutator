@@ -4,11 +4,16 @@ This is the user-facing entry point referenced in `docs/SKILLS_SETUP.md` and by
 `run.sh --crawl`. It dispatches to `skill_mutator.crawler.<registry>` and calls
 its `crawl(target_count, output_dir)` function.
 
-The registry backend is NOT included in this repo (no skill bodies are
-redistributed and scraping terms vary per registry): add
-`src/skill_mutator/crawler/<registry>.py` implementing `crawl(...)` for the
-source you are authorised to use. Without it this script exits with a
-"not implemented" hint and writes nothing.
+Bundled backends:
+  --registry anthropic : clone github.com/anthropics/skills and copy the 17
+                         published evaluation skills used in the paper.
+  --registry clawhub   : read a ClawHub manifest CSV (e.g. the artifact's
+                         artifact/data/clawhub/clawhub_skills.csv, or
+                         $SKILLMUTATOR_CLAWHUB_CSV) and fetch each skill's
+                         SKILL.md from the public ClawHub API (sha256-verified).
+No skill bodies are redistributed; the backends re-fetch from the public
+sources. Add `src/skill_mutator/crawler/<registry>.py` with a
+`crawl(target_count, output_dir)` function to support another source.
 
 Usage:
     python scripts/crawl_skills.py \\

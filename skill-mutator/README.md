@@ -22,10 +22,11 @@ local scanner from it — lives in the sister package
   baseline scan of the unmutated skill.
 - **Multi-provider LLM clients** — OpenAI, Anthropic, Google, and HuggingFace
   inference are all supported via a single `create_llm(...)` factory.
-- **Community-skill crawler** — a crawler entry point
-  (`scripts/crawl_skills.py`) for assembling your own evaluation corpus; the
-  per-registry backend is not shipped (no skill bodies are redistributed —
-  implement one for the source you are authorised to use).
+- **Community-skill crawler** — `scripts/crawl_skills.py` (and
+  `run.sh --crawl --registry {anthropic,clawhub}`) assembles an evaluation
+  corpus: `anthropic` clones the 17 published paper skills; `clawhub` fetches
+  SKILL.md from the ClawHub API via a manifest CSV. No skill bodies are
+  redistributed — the backends re-fetch from the public sources.
 
 ## Install
 
@@ -90,6 +91,7 @@ skill-mutator/
 │   │   ├── llm_scanner/     # LLM-based semantic scanner
 │   │   └── skill_security/  # rule-based SAST scanner (MIT, bundled)
 │   │                        # Snyk: pip `snyk-agent-scan` (Apache-2.0, not vendored)
+│   ├── crawler/             # skill-corpus crawler backends (anthropic, clawhub)
 │   └── utils/
 ├── examples/skills/         # bundled sample skill for the demo/smoke test
 ├── skills/                  # default skill pool (empty; drop skills here)

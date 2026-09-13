@@ -34,11 +34,15 @@
 #                                    #   pool instead of the single sample
 #   ./run.sh --crawl 10 --registry clawhub --skills-dir ./skills
 #
-# NOTE on --crawl: it drives scripts/crawl_skills.py, whose registry backend
-# (src/skill_mutator/crawler/<registry>.py) ships only as a placeholder scaffold
-# — no skill bodies are redistributed (licenses vary). Until you implement a
-# backend (or drop skills into --skills-dir manually; see docs/SKILLS_SETUP.md),
-# --crawl finds no skills and the demo falls back to the bundled sample skill.
+# NOTE on --crawl: it drives scripts/crawl_skills.py. Bundled registries:
+#   --registry anthropic : clone github.com/anthropics/skills, copy the 17 paper
+#                          evaluation skills (the mutation-benchmark set).
+#   --registry clawhub   : read a ClawHub manifest CSV (artifact/data/clawhub/
+#                          clawhub_skills.csv, or $SKILLMUTATOR_CLAWHUB_CSV) and
+#                          fetch each skill's SKILL.md from the ClawHub API.
+# No skill bodies are redistributed; the backends re-fetch from public sources.
+# If no skills are obtained, the demo falls back to the bundled sample skill.
+# See docs/SKILLS_SETUP.md.
 # ---------------------------------------------------------------------------
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -107,9 +111,9 @@ if [ "$CRAWL_N" -gt 0 ]; then
   mkdir -p "$SKILLS_DIR"
   if ! python scripts/crawl_skills.py --registry "$REGISTRY" \
          --target-count "$CRAWL_N" --output-dir "$SKILLS_DIR"; then
-    echo "   crawl_skills.py did not produce skills — the community crawler ships as a"
-    echo "   placeholder scaffold. Implement src/skill_mutator/crawler/${REGISTRY}.py"
-    echo "   (a crawl(target_count, output_dir) function), or drop skills into"
+    echo "   crawl_skills.py did not produce skills for registry '$REGISTRY'."
+    echo "   Check network access (anthropic: git clone; clawhub: ClawHub API +"
+    echo "   a manifest CSV via \$SKILLMUTATOR_CLAWHUB_CSV), or drop skills into"
     echo "   $SKILLS_DIR manually (see docs/SKILLS_SETUP.md)."
   fi
   for _d in "$SKILLS_DIR"/*/; do
