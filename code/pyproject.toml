@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skillmutator"
+version = "0.1.0"
+requires-python = ">=3.10"
+# CPU-installable dependencies: mutation/scan pipeline + claim
+# verification/analysis. All pip-installable without CUDA. The heavy GPU stack
+# for local-scanner training/inference is the separate `finetune` extra below.
+dependencies = [
+    # mutation / scan pipeline (needs OPENAI_API_KEY at run time)
+    "openai>=1.0.0",
+    "langchain-core>=0.2.0",
+    "langchain-openai>=0.1.0",
+    "langgraph>=0.1.0",
+    "tiktoken>=0.6.0",
+    "python-dotenv>=1.0.0",
+    # claim verification + figure regeneration (CPU)
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "pyyaml>=6.0",
+    "openpyxl>=3.1.0",
+    "matplotlib>=3.7.0",
+]
+
+[project.optional-dependencies]
+# Local open-weight scanner training / inference (GPU, heavy; require CUDA).
+# Install with `pip install .[finetune]` or `./install.sh --finetune`.
+finetune = [
+    "torch>=2.2.0",
+    "transformers>=4.46.0",
+    "peft>=0.13.0",
+    "trl>=0.12.0",
+    "datasets>=2.20.0",
+    "accelerate>=0.34.0",
+    "vllm>=0.6.0",
+    "huggingface_hub>=0.24.0",
+    "sentencepiece>=0.2.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["skillmutator*"]

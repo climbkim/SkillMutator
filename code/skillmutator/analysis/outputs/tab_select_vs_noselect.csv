@@ -1,0 +1,6 @@
+scanner,scanner_path,n_select,detected_select,rate_select_pct,n_noselect,detected_noselect,rate_noselect_pct,delta_pp
+skill-security-scan,ss,76,6,7.89,215,26,12.09,+4.20
+Snyk Agent Scan,snyk,76,7,9.21,215,36,16.74,+7.53
+GPT-4o-mini scanner,llm/gpt-4o-mini,76,18,23.68,215,79,36.74,+13.06
+GPT-5.4-mini scanner,llm/gpt-5.4-mini,76,60,78.95,215,189,87.91,+8.96
+GPT-5.4 scanner,llm/gpt-5.4-self,76,66,86.84,215,197,91.63,+4.79

@@ -1,0 +1,37 @@
+# ============================================================================
+# SkillMutator — Python dependencies
+# ============================================================================
+# CPU-installable set (mutation/scan + analysis). Matches the base
+# `dependencies` in pyproject.toml. Install with:
+#     pip install -r requirements.txt      # CPU only, no CUDA needed
+#
+# The heavy GPU stack (local-scanner training/inference) is NOT installed here;
+# it is the `finetune` extra (`pip install .[finetune]`), because vllm/torch
+# require CUDA and are not needed just to run the mutation/scan pipeline.
+# ----------------------------------------------------------------------------
+
+# Claim verification + figure regeneration (CPU)
+pandas>=2.0.0
+numpy>=1.24.0
+pyyaml>=6.0
+openpyxl>=3.1.0
+matplotlib>=3.7.0
+
+# Mutation generation + scan (needs OPENAI_API_KEY)
+openai>=1.0.0
+langchain-core>=0.2.0
+langchain-openai>=0.1.0
+langgraph>=0.1.0
+tiktoken>=0.6.0
+python-dotenv>=1.0.0
+
+# ----------------------------------------------------------------------------
+# GPU stack — local open-weight scanner training / inference (require CUDA).
+# Install via `pip install .[finetune]`:
+#   torch>=2.2.0 transformers>=4.46.0 peft>=0.13.0 trl>=0.12.0 datasets>=2.20.0
+#   accelerate>=0.34.0 vllm>=0.6.0 huggingface_hub>=0.24.0 sentencepiece>=0.2.0
+#
+# Optional alternative mutation oracles:
+#   pip install anthropic                # Claude oracle
+#   pip install google-generativeai      # Gemini oracle
+# ----------------------------------------------------------------------------

@@ -1,0 +1,26 @@
+# Normalize line endings. The artifact is run on Linux AE machines, so shell
+# scripts and Python must use LF — a CRLF `run.sh` breaks bash (`set -euo
+# pipefail: invalid option`) and a CRLF `.env` puts a stray \r on secrets.
+* text=auto
+
+*.sh   text eol=lf
+*.py   text eol=lf
+*.bash text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml  text eol=lf
+*.md   text eol=lf
+*.csv  text eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
+.env.example text eol=lf
+
+# Binary assets — never touch line endings.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.pdf  binary
+*.gz   binary
+*.tar  binary
+*.safetensors binary
+*.po   binary

@@ -1,0 +1,77 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "skill-scanner-finetune"
+version = "0.1.0"
+description = "4-Phase fine-tuning framework for local LLM agent-skill scanners (Qwen2.5-Coder-7B-Instruct base, distilled from a frontier teacher)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "The SkillMutator Authors" }]
+keywords = ["llm", "agent", "security", "fine-tuning", "lora", "distillation"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+# Mutation pipeline + LLM scanner are reused from the sister package.
+dependencies = [
+    "skill-mutator>=0.1.0",
+    "openai>=1.0.0",
+    "tiktoken>=0.5.0",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0",
+    "tqdm>=4.65.0",
+]
+
+[project.optional-dependencies]
+train = [
+    "torch>=2.2.0",
+    "transformers>=4.46.0",
+    "trl>=0.12.0",
+    "peft>=0.13.0",
+    "accelerate>=0.34.0",
+    "bitsandbytes>=0.43.0",
+    "datasets>=2.20.0",
+    "deepspeed>=0.15.0",
+    "wandb>=0.17.0",
+    "flash-attn; platform_system != 'Windows'",
+]
+serve = [
+    "vllm>=0.6.0",
+]
+analysis = [
+    "pandas>=2.0.0",
+    "matplotlib>=3.7.0",
+]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.4.0",
+]
+all = ["skill-scanner-finetune[train,serve,analysis,dev]"]
+
+[project.scripts]
+skill-scanner-finetune = "skill_scanner_finetune.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/climbkim/SkillMutator"
+Issues   = "https://github.com/climbkim/SkillMutator/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/skill_scanner_finetune"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q"

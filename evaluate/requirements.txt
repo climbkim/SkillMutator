@@ -1,4 +1,0 @@
-matplotlib>=3.5
-# Optional: needed only by scripts/stats/compute_kappa.py if the judge call
-# integration is enabled.
-# openai>=1.0

@@ -1,0 +1,66 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "skill-mutator"
+version = "0.1.0"
+description = "Adversarial mutation framework and multi-scanner evaluation harness for LLM agent skills."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "The SkillMutator Authors" }]
+keywords = ["llm", "agent", "security", "skills", "adversarial"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+
+dependencies = [
+    "openai>=1.0.0",
+    "anthropic>=0.25.0",
+    "google-generativeai>=0.5.0",
+    "tiktoken>=0.5.0",
+    "python-dotenv>=1.0.0",
+    "requests>=2.30.0",
+    "tqdm>=4.65.0",
+    "jsonschema>=4.20.0",
+]
+
+[project.optional-dependencies]
+crawler = [
+    "playwright>=1.40.0",
+    "beautifulsoup4>=4.12.0",
+]
+analysis = [
+    "pandas>=2.0.0",
+    "matplotlib>=3.7.0",
+]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.4.0",
+]
+all = ["skill-mutator[crawler,analysis,dev]"]
+
+[project.scripts]
+skill-mutator = "skill_mutator.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/climbkim/SkillMutator"
+Issues   = "https://github.com/climbkim/SkillMutator/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/skill_mutator"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q"
