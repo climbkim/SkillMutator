@@ -55,7 +55,8 @@ The fine-tuned LoRA adapters (four base families) are on Hugging Face:
 
 The mutated skills embed injected malicious instructions and are intended ONLY as
 scanner inputs in an isolated environment. Do not install or execute them against
-a live agent or on a machine with sensitive data. To avoid enabling misuse, the
+a live agent or on a machine with sensitive data. They are **not bundled** here;
+they are generated on disk only when the live pipeline (Tier 2–4) is run. To avoid enabling misuse, the
 malicious mutated skills, scanner outputs that quote them, and the full training
 corpus are **not redistributed**; `data/` ships only scanner verdicts and
 aggregates. Third-party host skills and the ClawHub corpus are referenced by URL
